@@ -1,14 +1,17 @@
 # 🍎🍌🥭 Fruit Ripeness Detection — YOLOv8n-OBB
 
-An object detection project that automatically classifies the **ripeness stage** of apples, bananas, and mangoes from images and video, using a fine-tuned **YOLOv8 nano (Oriented Bounding Box)** model.
+An object detection project that automatically classifies the ripeness stage of apples, bananas, and mangoes from images and video, using a fine-tuned **YOLOv8 nano (Oriented Bounding Box)** model.
 
 **Group 1:** Nawaf · Riyad · Mohammed · Norah · Rahaf
-https://computer-vision-project-89ypmw2m7vsrx9areffh7k.streamlit.app/
+
+🔗 **Live app:** [computer-vision-project-89ypmw2m7vsrx9areffh7k.streamlit.app](https://computer-vision-project-89ypmw2m7vsrx9areffh7k.streamlit.app/)
+
 ---
 
 ## 📌 Problem
 
 Manually inspecting fruit ripeness is:
+
 - Time-consuming
 - Inconsistent between inspectors
 - Dependent on subjective human judgment
@@ -21,7 +24,7 @@ Manually inspecting fruit ripeness is:
 
 - Detect fruit ripeness automatically using computer vision.
 - Train a YOLOv8 Oriented Object Detection model.
-- Deploy the model for real-time predictions via a Gradio web app.
+- Deploy the model for real-time predictions via a **Gradio** web app (in-notebook) and a public **Streamlit** web app.
 
 ---
 
@@ -30,6 +33,8 @@ Manually inspecting fruit ripeness is:
 | File / Folder | Description |
 |---|---|
 | `Fruit_Ripeness_Training-G1.ipynb` | Main Colab notebook: dataset download, preprocessing, training (3 hyperparameter runs), evaluation, testing on new images, and Gradio deployment |
+| `app.py` | Streamlit app source code (image & video detection, deployed publicly) |
+| `requirements.txt` | Python dependencies for the Streamlit app |
 | `Fruit_Ripeness_v1i_yolov8-obb.zip` | Exported dataset in YOLOv8-OBB format (images + normalized OBB labels + `data.yaml`) |
 | `data.yaml` | Dataset config file (class names and paths) used by Ultralytics for training |
 | `README_dataset.txt` | Original dataset attribution from Roboflow Universe |
@@ -40,7 +45,7 @@ Manually inspecting fruit ripeness is:
 
 ## 🗂️ Dataset
 
-- **Source:** [Roboflow Universe – Fruit Ripeness](https://universe.roboflow.com/-plwff/fruit-ripeness-ffuvb-e1mir)
+- **Source:** [Roboflow Universe – Fruit Ripeness](https://universe.roboflow.com/)
 - **License:** CC BY 4.0
 - **Format:** YOLOv8 Oriented Bounding Box (OBB)
 - **Total images:** 1,915
@@ -49,6 +54,7 @@ Manually inspecting fruit ripeness is:
   - Test: 73
 
 ### Classes (9)
+
 | # | Class |
 |---|---|
 | 0 | apple-overripe |
@@ -62,10 +68,12 @@ Manually inspecting fruit ripeness is:
 | 8 | mango-unripe |
 
 ### Preprocessing (applied on Roboflow)
+
 - Auto-orientation of pixel data (EXIF stripping)
 - Resize to 512×512 (stretch)
 
 ### Augmentation (applied on Roboflow)
+
 - Horizontal flip (50% probability)
 - Brightness adjustment (±15%)
 - Gaussian blur (0–2.5 px)
@@ -75,8 +83,9 @@ Manually inspecting fruit ripeness is:
 ## 🧠 Model & Training
 
 - **Architecture:** YOLOv8 nano, Oriented Bounding Box head (`yolov8n-obb.pt`)
-- **Framework:** [Ultralytics](https://github.com/ultralytics/ultralytics)
-- Three training configurations were compared to study the effect of epochs and image size:
+- **Framework:** Ultralytics
+
+Three training configurations were compared to study the effect of epochs and image size:
 
 | Run | Epochs | Image size | Batch |
 |---|---|---|---|
@@ -98,18 +107,20 @@ The best-performing run (highest mAP50-95) was selected as the final model.
 **Classes detected well:** apple-ripe, apple-unripe, mango-unripe, banana-ripe (precision & recall ≈ 1.0)
 
 **Weaker points:**
+
 - `banana-unripe` had the lowest recall (~0.84), likely confused with `banana-ripe` under certain lighting/angles.
 - Testing on a real out-of-distribution image (a severely rotten apple) exposed a generalization gap: the model predicted `apple-ripe` with only 66% confidence instead of `apple-overripe`, suggesting the training data lacked diverse severity levels of decay.
 
 **Possible improvements:**
-- Collect more images for underrepresented classes (e.g. mango-ripe).
+
+- Collect more images for underrepresented classes (e.g. `mango-ripe`).
 - Add training images covering more extreme/varied ripeness and lighting conditions.
 
 ---
 
-## 🚀 How to Run
+## 🚀 How to Run (Notebook)
 
-1. Open `Fruit_Ripeness_Training-G1.ipynb` in **Google Colab**.
+1. Open `Fruit_Ripeness_Training-G1.ipynb` in Google Colab.
 2. Set the runtime to GPU: `Runtime > Change runtime type > T4 GPU`.
 3. Run the cells top to bottom:
    - Mounts Google Drive (dataset & weights are cached there — re-running the notebook won't re-download or re-train from scratch).
@@ -117,24 +128,50 @@ The best-performing run (highest mAP50-95) was selected as the final model.
    - Trains the 3 model configurations (or loads existing weights if already trained).
    - Evaluates the best model (mAP, precision, recall) on the validation and test sets.
    - Tests the model on new, real-world images uploaded by the user.
-   - Launches a **Gradio** web app for interactive image/video testing.
+   - Launches a Gradio web app for interactive image/video testing.
 
 ### Using the included dataset export directly
+
 ```python
 from ultralytics import YOLO
 
 model = YOLO("yolov8n-obb.pt")
 model.train(data="data.yaml", epochs=50, imgsz=512, batch=16)
 ```
-> Unzip `Fruit_Ripeness_v1i_yolov8-obb.zip` first and make sure `data.yaml`'s `path` points to the extracted folder.
+
+Unzip `Fruit_Ripeness_v1i_yolov8-obb.zip` first and make sure `data.yaml`'s path points to the extracted folder.
 
 ---
 
 ## 🖥️ Deployment
 
-A **Gradio** web interface is included in the notebook, with two tabs:
+### 1. Gradio (in-notebook, quick testing)
+
+A Gradio web interface is included in the notebook, with two tabs:
+
 - **Image tab:** upload an image → get annotated result + confidence table.
 - **Video tab (bonus):** upload a video → get frame-by-frame annotated output.
+
+### 2. Streamlit (public, always-on)
+
+The model is also deployed as a standalone **Streamlit** app (`app.py`), hosted for free on Streamlit Community Cloud:
+
+🔗 **[computer-vision-project-89ypmw2m7vsrx9areffh7k.streamlit.app](https://computer-vision-project-89ypmw2m7vsrx9areffh7k.streamlit.app/)**
+
+Features:
+
+- Upload an image or video and get detections with an adjustable confidence/IoU threshold.
+- Side-by-side view of the original and annotated image.
+- Confidence table listing every detected object and class.
+
+To run it locally:
+
+```bash
+pip install -r requirements.txt
+streamlit run app.py
+```
+
+The model weights (`best.pt`) are auto-downloaded on first run via a `WEIGHTS_URL` secret pointing to the hosted weights file.
 
 ---
 
@@ -146,4 +183,4 @@ See `CV_Pres.pdf` for the full project walkthrough: problem statement, dataset, 
 
 ## 🙏 Acknowledgements
 
-Dataset provided by a Roboflow user via [Roboflow Universe](https://universe.roboflow.com), licensed under CC BY 4.0. Exported and processed using [Roboflow](https://roboflow.com). Model built with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics).
+Dataset provided by a Roboflow user via Roboflow Universe, licensed under CC BY 4.0. Exported and processed using Roboflow. Model built with Ultralytics YOLOv8.
