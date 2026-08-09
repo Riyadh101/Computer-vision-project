@@ -1,0 +1,14 @@
+train: train/images
+val: valid/images
+test: test/images
+
+names: 
+  0: apple-overripe
+  1: apple-ripe
+  2: apple-unripe
+  3: banana-overripe
+  4: banana-ripe
+  5: banana-unripe
+  6: mango-overripe
+  7: mango-ripe
+  8: mango-unripe
