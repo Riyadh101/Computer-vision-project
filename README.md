@@ -3,7 +3,7 @@
 An object detection project that automatically classifies the **ripeness stage** of apples, bananas, and mangoes from images and video, using a fine-tuned **YOLOv8 nano (Oriented Bounding Box)** model.
 
 **Group 1:** Nawaf · Riyad · Mohammed · Norah · Rahaf
-
+https://computer-vision-project-89ypmw2m7vsrx9areffh7k.streamlit.app/
 ---
 
 ## 📌 Problem
